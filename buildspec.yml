@@ -6,11 +6,19 @@ phases:
       nodejs: 14
     commands:
       - npm install -g aws-sdk
-      - cd backend && npm install
+      - cd src/auth && npm install
+      - cd ../orders && npm install
+      - cd ../products && npm install
+  pre_build:
+    commands:
+      - mkdir -p dist/$ENV
   build:
     commands:
-      - ./scripts/package-lambdas.bat $ENV
+      - cd src/auth && zip -r ../../dist/$ENV/auth.zip .
+      - cd ../orders && zip -r ../../dist/$ENV/orders.zip .
+      - cd ../products && zip -r ../../dist/$ENV/products.zip .
   post_build:
     commands:
       - aws s3 sync dist/$ENV/ s3://$LAMBDA_DEPLOYMENT_BUCKET/backend/$ENV/
-      - aws cloudformation deploy --template-file template.yml --stack-name ecommerce-$ENV --parameter-overrides EnvType=$ENV LambdaDeploymentBucket=$LAMBDA_DEPLOYMENT_BUCKET
+      - aws cloudformation package --template-file templates/backend.yml --s3-bucket $LAMBDA_DEPLOYMENT_BUCKET --output-template-file packaged-template.yml
+      - aws s3 cp packaged-template.yml s3://$LAMBDA_DEPLOYMENT_BUCKET/templates/

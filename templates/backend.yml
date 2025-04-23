@@ -1,0 +1,187 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: E-commerce backend infrastructure
+
+Parameters:
+  EnvType:
+    Type: String
+    Description: Environment type (dev, staging, prod)
+    AllowedValues: [dev, staging, prod]
+    Default: dev
+  LambdaDeploymentBucket:
+    Type: String
+    Description: S3 bucket for Lambda deployment packages
+
+Resources:
+  # DynamoDB Tables
+  ProductsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub products-${EnvType}
+      AttributeDefinitions:
+        - AttributeName: productId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: productId
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+  OrdersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub orders-${EnvType}
+      AttributeDefinitions:
+        - AttributeName: orderId
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: orderId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: UserIdIndex
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  # Cognito User Pool
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub ecommerce-users-${EnvType}
+      AutoVerifiedAttributes: [email]
+      UsernameAttributes: [email]
+      
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub ecommerce-client-${EnvType}
+      UserPoolId: !Ref UserPool
+      GenerateSecret: true
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows: [implicit]
+      AllowedOAuthScopes: [email, openid, profile]
+      CallbackURLs: ["https://example.com/callback"] # Update with your frontend URL
+      LogoutURLs: ["https://example.com/logout"]    # Update with your frontend URL
+      SupportedIdentityProviders: [COGNITO]
+
+  # SNS Topic for order notifications
+  OrderNotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub order-notifications-${EnvType}
+
+  # SQS Queue for orders
+  OrderProcessingQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub order-processing-${EnvType}
+      VisibilityTimeout: 300
+
+  # Lambda Functions
+  AuthLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub auth-${EnvType}
+      Handler: handler.handler
+      Runtime: nodejs14.x
+      Code:
+        S3Bucket: !Ref LambdaDeploymentBucket
+        S3Key: !Sub backend/${EnvType}/auth.zip
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+        USER_POOL_ID: !Ref UserPool
+        USER_POOL_CLIENT_ID: !Ref UserPoolClient
+        USER_POOL_CLIENT_SECRET: !GetAtt UserPoolClient.ClientSecret
+
+  ProductsLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub products-${EnvType}
+      Handler: handler.handler
+      Runtime: nodejs14.x
+      Code:
+        S3Bucket: !Ref LambdaDeploymentBucket
+        S3Key: !Sub backend/${EnvType}/products.zip
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          PRODUCTS_TABLE: !Ref ProductsTable
+          ES_ENDPOINT: "not-used"
+
+  OrdersLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub orders-${EnvType}
+      Handler: handler.handler
+      Runtime: nodejs14.x
+      Code:
+        S3Bucket: !Ref LambdaDeploymentBucket
+        S3Key: !Sub backend/${EnvType}/orders.zip
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          ORDERS_TABLE: !Ref OrdersTable
+          TOPIC_ARN: !Ref OrderNotificationTopic
+          QUEUE_URL: !Ref OrderProcessingQueue
+
+  # API Gateway
+  ApiGateway:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: !Sub ecommerce-api-${EnvType}
+      Description: E-commerce API
+
+  ApiGatewayDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - AuthApiResource
+      - ProductsApiResource
+      - OrdersApiResource
+    Properties:
+      RestApiId: !Ref ApiGateway
+      StageName: !Ref EnvType
+
+  # IAM Roles
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ecommerce-lambda-role-${EnvType}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [lambda.amazonaws.com]
+            Action: ['sts:AssumeRole']
+      Policies:
+        - PolicyName: !Sub ecommerce-lambda-policy-${EnvType}
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:*
+                  - cognito-idp:*
+                  - sns:Publish
+                  - sqs:SendMessage
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+
+Outputs:
+  ApiGatewayUrl:
+    Description: URL of the API Gateway
+    Value: !Sub https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${EnvType}
+  UserPoolId:
+    Description: Cognito User Pool ID
+    Value: !Ref UserPool
+  UserPoolClientId:
+    Description: Cognito User Pool Client ID
+    Value: !Ref UserPoolClient

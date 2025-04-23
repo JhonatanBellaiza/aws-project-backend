@@ -27,7 +27,15 @@ exports.handler = async (event) => {
         console.log('Filtering by category:', event.queryStringParameters.category);
         const products = await productService.getProductsByCategory(event.queryStringParameters.category);
         return successResponse(products.Items);
-      } 
+      }
+      else if (event.queryStringParameters?.productId) {
+        console.log('Fetching product with ID:', event.queryStringParameters.productId);
+        const product = await productService.getProduct(event.queryStringParameters.productId);
+        if (!product.Item) {
+          return errorResponse(new Error('Product not found'), 404);
+        }
+        return successResponse(product.Item);
+      }
       else {
         console.log('Fetching all products');
         const products = await productService.getAllProducts();
@@ -52,4 +60,4 @@ exports.handler = async (event) => {
     
     return errorResponse(error);
   }
-};  
+};

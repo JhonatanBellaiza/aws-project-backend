@@ -1,4 +1,4 @@
-const { successResponse, errorResponse } = require('../../shared/utils');
+const { successResponse, errorResponse } = require('./utils');
 const orderService = require('./order-service');
 const notificationService = require('./notification-service');
 const AWS = require('aws-sdk');

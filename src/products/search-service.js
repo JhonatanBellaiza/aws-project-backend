@@ -1,67 +1,53 @@
+const AWS = require('aws-sdk');
 const https = require('https');
 
 module.exports = {
   searchProducts(query) {
-    // Validate OpenSearch configuration
-    if (!process.env.ES_ENDPOINT) {
-      throw new Error('ES_ENDPOINT environment variable not set');
-    }
-
-    // Clean and validate the endpoint URL
-    let cleanedEndpoint;
-    try {
-      cleanedEndpoint = process.env.ES_ENDPOINT
-        .replace(/\/$/, '') // Remove trailing slash
-        .replace(/^https?:\/\//, ''); // Remove protocol
-    } catch (e) {
-      throw new Error(`Invalid ES_ENDPOINT format: ${process.env.ES_ENDPOINT}`);
-    }
-
     return new Promise((resolve, reject) => {
-      const options = {
-        hostname: cleanedEndpoint,
-        path: `/products/_search?q=${encodeURIComponent(query)}`,
+      // 1. Prepare the OpenSearch request
+      const endpoint = process.env.ES_ENDPOINT.replace(/^https?:\/\//, '');
+      const path = `/products/_search?q=${encodeURIComponent(query)}`;
+      const region = process.env.AWS_REGION || 'us-east-1';
+
+      // 2. Create and sign the request
+      const request = new AWS.HttpRequest(
+        new AWS.Endpoint(process.env.ES_ENDPOINT),
+        region
+      );
+      request.method = 'GET';
+      request.path = path;
+      request.headers['Host'] = endpoint;
+      request.headers['Content-Type'] = 'application/json';
+
+      // 3. Sign the request with Lambda's credentials
+      const signer = new AWS.Signers.V4(request, 'es');
+      signer.addAuthorization(AWS.config.credentials, new Date());
+
+      // 4. Make the HTTPS request
+      const req = https.request({
+        hostname: endpoint,
+        path: path,
         method: 'GET',
-        headers: { 
-          'Content-Type': 'application/json',
-          // Add if your OpenSearch requires authentication
-          // 'Authorization': `Basic ${Buffer.from('username:password').toString('base64')}`
-        },
-        timeout: 5000 // 5-second timeout
-      };
-
-      console.log('OpenSearch request options:', options);
-
-      const req = https.request(options, (res) => {
+        headers: request.headers
+      }, (res) => {
         let data = '';
         res.on('data', (chunk) => data += chunk);
         res.on('end', () => {
-          console.log('Raw OpenSearch response:', data); 
           try {
-            const response = JSON.parse(data);
-            if (response.hits && response.hits.hits) {
-              const results = response.hits.hits.map(hit => hit._source);
-              resolve(results);
-            } else {
-              reject(new Error('Unexpected OpenSearch response format'));
+            const body = JSON.parse(data);
+            if (res.statusCode !== 200) {
+              console.error('OpenSearch error response:', body);
+              return reject(new Error(body.message || 'OpenSearch error'));
             }
-          } catch (parseError) {
-            reject(new Error(`Failed to parse OpenSearch response: ${parseError.message}`));
+            resolve(body.hits?.hits.map(hit => hit._source) || []);
+          } catch (e) {
+            reject(new Error(`Failed to parse response: ${e.message}`));
           }
         });
       });
 
-      req.on('error', (err) => {
-        console.error('OpenSearch request failed:', err);
-        reject(new Error('Search service unavailable'));
-      });
-
-      req.on('timeout', () => {
-        req.destroy();
-        reject(new Error('OpenSearch request timed out'));
-      });
-
+      req.on('error', reject);
       req.end();
     });
   }
-};  
+};

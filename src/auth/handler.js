@@ -1,4 +1,4 @@
-const { successResponse, errorResponse } = require('../../shared/utils');
+const { successResponse, errorResponse } = require('./utils');
 const authService = require('./cognito-service');
 
 exports.handler = async (event) => {
@@ -13,7 +13,8 @@ exports.handler = async (event) => {
         process.env.USER_POOL_CLIENT_ID,
         username,
         password,
-        email
+        email,
+        process.env.USER_POOL_CLIENT_SECRET // Add client secret
       );
       return successResponse({ message: 'User created successfully' });
     } 
@@ -23,7 +24,8 @@ exports.handler = async (event) => {
         process.env.USER_POOL_ID,
         process.env.USER_POOL_CLIENT_ID,
         username,
-        password
+        password,
+        process.env.USER_POOL_CLIENT_SECRET // Add client secret
       );
       return successResponse(tokens);
     }

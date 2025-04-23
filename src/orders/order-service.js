@@ -1,4 +1,4 @@
-const db = require('../../shared/db-client');
+const db = require('./db-client');
 const { v4: uuidv4 } = require('uuid');
 
 module.exports = {
