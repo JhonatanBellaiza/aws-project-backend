@@ -62,8 +62,8 @@ Resources:
       AllowedOAuthFlowsUserPoolClient: true
       AllowedOAuthFlows: [implicit]
       AllowedOAuthScopes: [email, openid, profile]
-      CallbackURLs: ["https://example.com/callback"] # Update with your frontend URL
-      LogoutURLs: ["https://example.com/logout"]    # Update with your frontend URL
+      CallbackURLs: ["https://example.com/callback"]
+      LogoutURLs: ["https://example.com/logout"]
       SupportedIdentityProviders: [COGNITO]
 
   # SNS Topic for order notifications
@@ -92,9 +92,9 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Environment:
         Variables:
-            USER_POOL_ID: !Ref UserPool
-            USER_POOL_CLIENT_ID: !Ref UserPoolClient
-            USER_POOL_CLIENT_SECRET: !GetAtt UserPoolClient.ClientSecret
+          USER_POOL_ID: !Ref UserPool
+          USER_POOL_CLIENT_ID: !Ref UserPoolClient
+          USER_POOL_CLIENT_SECRET: !GetAtt UserPoolClient.ClientSecret
 
   ProductsLambda:
     Type: AWS::Lambda::Function
@@ -134,12 +134,97 @@ Resources:
       Name: !Sub ecommerce-api-${EnvType}
       Description: E-commerce API
 
+  # API Gateway Resources
+  AuthApiResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt ApiGateway.RootResourceId
+      PathPart: "auth"
+      RestApiId: !Ref ApiGateway
+
+  ProductsApiResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt ApiGateway.RootResourceId
+      PathPart: "products"
+      RestApiId: !Ref ApiGateway
+
+  OrdersApiResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt ApiGateway.RootResourceId
+      PathPart: "orders"
+      RestApiId: !Ref ApiGateway
+
+  # API Gateway Methods
+  AuthApiMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: POST
+      ResourceId: !Ref AuthApiResource
+      RestApiId: !Ref ApiGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AuthLambda.Arn}/invocations"
+
+  ProductsApiMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: GET
+      ResourceId: !Ref ProductsApiResource
+      RestApiId: !Ref ApiGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ProductsLambda.Arn}/invocations"
+
+  OrdersApiMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: POST
+      ResourceId: !Ref OrdersApiResource
+      RestApiId: !Ref ApiGateway
+      AuthorizationType: AWS_IAM  # Requires Cognito auth
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrdersLambda.Arn}/invocations"
+
+  # Lambda Permissions
+  AuthLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt AuthLambda.Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*/auth"
+
+  ProductsLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt ProductsLambda.Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*/products"
+
+  OrdersLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt OrdersLambda.Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*/orders"
+
+  # API Gateway Deployment
   ApiGatewayDeployment:
     Type: AWS::ApiGateway::Deployment
     DependsOn:
-      - AuthApiResource
-      - ProductsApiResource
-      - OrdersApiResource
+      - AuthApiMethod
+      - ProductsApiMethod
+      - OrdersApiMethod
     Properties:
       RestApiId: !Ref ApiGateway
       StageName: !Ref EnvType
