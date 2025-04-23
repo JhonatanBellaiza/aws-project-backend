@@ -92,9 +92,9 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Environment:
         Variables:
-        USER_POOL_ID: !Ref UserPool
-        USER_POOL_CLIENT_ID: !Ref UserPoolClient
-        USER_POOL_CLIENT_SECRET: !GetAtt UserPoolClient.ClientSecret
+            USER_POOL_ID: !Ref UserPool
+            USER_POOL_CLIENT_ID: !Ref UserPoolClient
+            USER_POOL_CLIENT_SECRET: !GetAtt UserPoolClient.ClientSecret
 
   ProductsLambda:
     Type: AWS::Lambda::Function
