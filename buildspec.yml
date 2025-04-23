@@ -1,0 +1,16 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 14
+    commands:
+      - npm install -g aws-sdk
+      - cd backend && npm install
+  build:
+    commands:
+      - ./scripts/package-lambdas.bat $ENV
+  post_build:
+    commands:
+      - aws s3 sync dist/$ENV/ s3://$LAMBDA_DEPLOYMENT_BUCKET/backend/$ENV/
+      - aws cloudformation deploy --template-file template.yml --stack-name ecommerce-$ENV --parameter-overrides EnvType=$ENV LambdaDeploymentBucket=$LAMBDA_DEPLOYMENT_BUCKET
