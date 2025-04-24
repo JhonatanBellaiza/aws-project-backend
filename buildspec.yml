@@ -16,11 +16,9 @@ phases:
     commands:
       - echo "Creating distribution directory..."
       - mkdir -p dist/$ENV
-      - mkdir -p output_templates
       - echo "Current directory structure:"
       - ls -la
       - ls -la src/
-      - ls -la templates/
 
   build:
     commands:
@@ -38,8 +36,15 @@ phases:
       - aws s3 sync dist/$ENV/ s3://$LAMBDA_DEPLOYMENT_BUCKET/backend/$ENV/
       
       - echo "Packaging CloudFormation template..."
-      - 'if [ ! -f "templates/backend.yml" ]; then echo "Error: templates/backend.yml not found" && exit 1; fi'
-      - aws cloudformation package \
+      - mkdir -p output_templates  # Create output directory
+      - |
+        if [ ! -f "templates/backend.yml" ]; then
+          echo "Error: templates/backend.yml not found"
+          ls -la templates/
+          exit 1
+        fi
+      - |
+        aws cloudformation package \
           --template-file templates/backend.yml \
           --s3-bucket $LAMBDA_DEPLOYMENT_BUCKET \
           --output-template-file output_templates/backend-packaged.yml
@@ -47,8 +52,7 @@ phases:
 
 artifacts:
   files:
-    - output_templates/backend-packaged.yml
-    - templates/backend.yml
-    - dist/$ENV/*
+    - packaged-template.yml
+    - templates/backend.yml  # Add this line to include the template file
+    - dist/$ENV/*             # Include Lambda deployment packages
   base-directory: .
-  discard-paths: no
