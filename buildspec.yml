@@ -5,36 +5,17 @@ phases:
     runtime-versions:
       nodejs: 18
     commands:
-      - echo "Working directory: $(pwd)"
-      - echo "Directory contents:"
-      - ls -la
       - npm install -g aws-sdk
-      - if [ -d "src/auth" ]; then 
-          cd src/auth && npm install && cd ../..;
-        else
-          echo "ERROR: src/auth not found" && exit 1;
-        fi
-      - if [ -d "src/orders" ]; then 
-          cd src/orders && npm install && cd ../..;
-        else
-          echo "ERROR: src/orders not found" && exit 1;
-        fi
-      - if [ -d "src/products" ]; then 
-          cd src/products && npm install && cd ../..;
-        else
-          echo "ERROR: src/products not found" && exit 1;
-        fi
+      - if [ -d "src/auth" ]; then cd src/auth && npm install && cd ../..; fi
+      - if [ -d "src/orders" ]; then cd src/orders && npm install && cd ../..; fi
+      - if [ -d "src/products" ]; then cd src/products && npm install && cd ../..; fi
 
   pre_build:
     commands:
-      - echo "Current directory: $(pwd)"
-      - echo "Verifying source structure..."
-      - ls -la src/
       - mkdir -p dist/$ENV
 
   build:
     commands:
-      - echo "Packaging from: $(pwd)"
       - if [ ! -d "src/auth" ]; then echo "ERROR: src/auth missing" && exit 1; fi
       - (cd src/auth && zip -r ../../dist/$ENV/auth.zip .) || exit 1
       - (cd src/orders && zip -r ../../dist/$ENV/orders.zip .) || exit 1
@@ -42,20 +23,9 @@ phases:
 
   post_build:
     commands:
-      - echo "Uploading artifacts from: $(pwd)"
       - aws s3 sync dist/$ENV/ s3://$LAMBDA_DEPLOYMENT_BUCKET/backend/$ENV/
-      
-      - echo "Current directory for CFN packaging: $(pwd)"
-      - ls -la templates/
-      - if [ ! -f "templates/backend.yml" ]; then 
-          echo "ERROR: Missing templates/backend.yml";
-          ls -la;
-          exit 1;
-        fi
-      - aws cloudformation package \
-          --template-file templates/backend.yml \
-          --s3-bucket $LAMBDA_DEPLOYMENT_BUCKET \
-          --output-template-file packaged-template.yml
+      - if [ ! -f "templates/backend.yml" ]; then echo "Missing template" && exit 1; fi
+      - aws cloudformation package --template-file templates/backend.yml --s3-bucket $LAMBDA_DEPLOYMENT_BUCKET --output-template-file packaged-template.yml
       - aws s3 cp packaged-template.yml s3://$LAMBDA_DEPLOYMENT_BUCKET/templates/
 
 artifacts:
