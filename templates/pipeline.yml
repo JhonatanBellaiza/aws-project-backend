@@ -179,8 +179,8 @@ Resources:
                 TemplatePath: BuildOutput::templates/backend.yml
                 ParameterOverrides: !Sub |
                   {
-                    "EnvType": "{EnvType}",
-                    "LambdaDeploymentBucket": "{LambdaDeploymentBucket}"
+                    "EnvType": "${EnvType}",
+                    "LambdaDeploymentBucket": "${LambdaDeploymentBucket}"
                   }
               InputArtifacts:
                 - Name: BuildOutput
