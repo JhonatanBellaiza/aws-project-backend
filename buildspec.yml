@@ -14,8 +14,8 @@ phases:
 
   pre_build:
     commands:
-      - echo "DEBUG - ENV value is: $ENV"
-      - echo "DEBUG - LAMBDA_DEPLOYMENT_BUCKET is: $LAMBDA_DEPLOYMENT_BUCKET"
+      - echo "DEBUG - ENV value is $ENV"
+      - echo "DEBUG - LAMBDA_DEPLOYMENT_BUCKET is $LAMBDA_DEPLOYMENT_BUCKET"
       - echo "Creating distribution directory..."
       - mkdir -p dist/$ENV
       - echo "Current directory structure:"
