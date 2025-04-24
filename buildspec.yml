@@ -21,8 +21,8 @@ phases:
   pre_build:
     commands:
       - echo "=== PRE-BUILD PHASE ==="
-      - echo "ENV: $ENV"
-      - echo "LAMBDA_DEPLOYMENT_BUCKET: $LAMBDA_DEPLOYMENT_BUCKET"
+      - echo "ENV $ENV"
+      - echo "LAMBDA_DEPLOYMENT_BUCKET $LAMBDA_DEPLOYMENT_BUCKET"
       - echo "Creating directories..."
       - mkdir -p dist/$ENV output_templates
       - echo "Current structure:"
