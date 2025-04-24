@@ -179,10 +179,10 @@ Resources:
                 RoleArn: !GetAtt CloudFormationExecutionRole.Arn
                 StackName: !Sub ecommerce-${EnvType}
                 TemplatePath: BuildOutput::templates/backend.yml
-                ParameterOverrides: !Sub |
+                ParameterOverrides: |
                   {
                     "EnvType": "dev",
-                    "LambdaDeploymentBucket": "${LambdaDeploymentBucket}"
+                    "LambdaDeploymentBucket": "ecommerce-aws-project-backend"
                   }
               InputArtifacts:
                 - Name: BuildOutput

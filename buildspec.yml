@@ -55,6 +55,6 @@ phases:
 artifacts:
   files:
     - packaged-template.yml
-    - templates/backend.yml  # Add this line to include the template file
-    - dist/$ENV/*             # Include Lambda deployment packages
+    - templates/backend.yml
+    - dist/$ENV/*
   base-directory: .
