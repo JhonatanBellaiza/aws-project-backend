@@ -16,7 +16,7 @@ for %%d in (auth products orders) do (
   cd %LAMBDA_SOURCE_DIR%\%%d
   call npm install --production
   cd ..\..
-  powershell Compress-Archive -Path %LAMBDA_SOURCE_DIR%\%%d\* -DestinationPath %DIST_DIR%\%%d-service.zip -Force
+  powershell Compress-Archive -Path %LAMBDA_SOURCE_DIR%\%%d\* -DestinationPath %DIST_DIR%\%%d.zip -Force
 )
 
 echo Lambda packaging complete. Files saved to %DIST_DIR%

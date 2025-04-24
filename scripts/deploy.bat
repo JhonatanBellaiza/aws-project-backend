@@ -9,7 +9,7 @@ if "%BUCKET%"=="" (
   exit /b 1
 )
 
-call scripts\package-lambdas.bat %ENV%
+call scripts\package-lambda.bat %ENV%
 
 echo Uploading packages to S3...
 aws s3 sync dist\%ENV%\ s3://%BUCKET%/backend/%ENV%/
