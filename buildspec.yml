@@ -49,6 +49,6 @@ artifacts:
   files:
     - output_templates/backend-packaged.yml
     - templates/backend.yml
-    - dist/$ENV/*
+    - dist/** 
   base-directory: .
   discard-paths: no
