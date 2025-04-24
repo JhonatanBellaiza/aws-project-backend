@@ -120,8 +120,10 @@ Resources:
         EnvironmentVariables:
           - Name: ENV
             Value: !Ref EnvType
+            Type: PLAINTEXT
           - Name: LAMBDA_DEPLOYMENT_BUCKET
             Value: !Ref LambdaDeploymentBucket
+            Type: PLAINTEXT
 
   BackendPipeline:
     Type: AWS::CodePipeline::Pipeline
@@ -179,8 +181,8 @@ Resources:
                 TemplatePath: BuildOutput::templates/backend.yml
                 ParameterOverrides: !Sub |
                   {
-                    "EnvType": "${ENV}",
-                    "LambdaDeploymentBucket": "${LAMBDA_DEPLOYMENT_BUCKET}"
+                    "EnvType": "${EnvType}",
+                    "LambdaDeploymentBucket": "${LambdaDeploymentBucket}"
                   }
               InputArtifacts:
                 - Name: BuildOutput
