@@ -176,7 +176,7 @@ Resources:
                 Capabilities: CAPABILITY_IAM
                 RoleArn: !GetAtt CloudFormationExecutionRole.Arn
                 StackName: !Sub ecommerce-${EnvType}
-                TemplatePath: BuildOutput::templates/backend.yml
+                TemplatePath: BuildOutput::output_templates/backend-packaged.yml
                 ParameterOverrides: |
                   {
                     "EnvType": "{EnvType}",
