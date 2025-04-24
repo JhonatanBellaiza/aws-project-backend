@@ -5,6 +5,8 @@ phases:
     runtime-versions:
       nodejs: 18
     commands:
+      - echo "Current ENV value is: $ENV" 
+      - echo "Current bucket is: $LAMBDA_DEPLOYMENT_BUCKET"
       - echo "Installing global dependencies..."
       - npm install -g aws-sdk
       - echo "Installing Lambda function dependencies..."
