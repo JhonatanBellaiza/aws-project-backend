@@ -10,7 +10,7 @@ Key AWS Lambda functions:
 
 - **Product Search**: Handles product search with filters.
 - **Order Placement**: Processes the order and stores it in DynamoDB.
-- **User Authentication**: Manages user registration/login via Amazon Cognito.
+- **User Authentication**: Manages user registration/login via Amazon Cognito. Test
 
 ## AWS Services
 
