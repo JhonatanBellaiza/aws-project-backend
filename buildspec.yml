@@ -30,7 +30,7 @@ phases:
         to package orders" && exit 1)
       - (cd src/products && zip -r ../../dist/$ENV/products.zip .) || (echo
         "Failed to package products" && exit 1)
-  post_build: null
+  post_build:
     commands:
       - echo "Uploading Lambda packages to S3..."
       - aws s3 sync dist/$ENV/ s3://$LAMBDA_DEPLOYMENT_BUCKET/backend/$ENV/
