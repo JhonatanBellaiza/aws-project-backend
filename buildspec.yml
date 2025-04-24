@@ -14,6 +14,12 @@ phases:
 
   pre_build:
     commands:
+      - echo "=== DEBUG START ==="
+      - echo "Raw ENV from pipeline: ${EnvType} "
+      - echo "CodeBuild ENV variable: '${ENV}'"
+      - echo "Current working directory: '$(pwd)'"
+      - echo "Template file exists: '$(ls -la templates/backend.yml)'"
+      - echo "=== DEBUG END ==="
       - echo "DEBUG - ENV value is $ENV"
       - echo "DEBUG - LAMBDA_DEPLOYMENT_BUCKET is $LAMBDA_DEPLOYMENT_BUCKET"
       - echo "Creating distribution directory..."
