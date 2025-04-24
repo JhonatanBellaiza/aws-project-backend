@@ -23,7 +23,7 @@ module.exports = {
       const signer = new AWS.Signers.V4(request, 'es');
       signer.addAuthorization(AWS.config.credentials, new Date());
 
-      // 4. Make the HTTPS request
+      // 4. Make the HTTPS request Simple hange
       const req = https.request({
         hostname: endpoint,
         path: path,
