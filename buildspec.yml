@@ -31,20 +31,20 @@ phases:
       - (cd src/products && zip -r ../../dist/$ENV/products.zip .) || (echo
         "Failed to package products" && exit 1)
   post_build: null
-  commands:
-    - echo "Uploading Lambda packages to S3..."
-    - aws s3 sync dist/$ENV/ s3://$LAMBDA_DEPLOYMENT_BUCKET/backend/$ENV/
-    - echo "Packaging CloudFormation template..."
-    - |
-      if [ ! -f "templates/backend.yml" ]; then
-        echo "Error: templates/backend.yml not found"
-        ls -la templates/
-        exit 1
-      fi
-    - aws cloudformation package \ --template-file templates/backend.yml \
-      --s3-bucket $LAMBDA_DEPLOYMENT_BUCKET \ --output-template-file
-      packaged-template.yml
-    - aws s3 cp packaged-template.yml s3://$LAMBDA_DEPLOYMENT_BUCKET/templates/
+    commands:
+      - echo "Uploading Lambda packages to S3..."
+      - aws s3 sync dist/$ENV/ s3://$LAMBDA_DEPLOYMENT_BUCKET/backend/$ENV/
+      - echo "Packaging CloudFormation template..."
+      - |
+        if [ ! -f "templates/backend.yml" ]; then
+          echo "Error: templates/backend.yml not found"
+          ls -la templates/
+          exit 1
+        fi
+      - aws cloudformation package \ --template-file templates/backend.yml \
+        --s3-bucket $LAMBDA_DEPLOYMENT_BUCKET \ --output-template-file
+        packaged-template.yml
+      - aws s3 cp packaged-template.yml s3://$LAMBDA_DEPLOYMENT_BUCKET/templates/
 artifacts:
   files:
     - packaged-template.yml
