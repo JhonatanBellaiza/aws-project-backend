@@ -86,7 +86,7 @@ Resources:
     Properties:
       FunctionName: !Sub auth-${EnvType}
       Handler: handler.handler
-      Runtime: nodejs14.x
+      Runtime: nodejs18.x
       Code:
         S3Bucket: !Ref LambdaDeploymentBucket
         S3Key: !Sub backend/${EnvType}/auth.zip
@@ -102,7 +102,7 @@ Resources:
     Properties:
       FunctionName: !Sub products-${EnvType}
       Handler: handler.handler
-      Runtime: nodejs14.x
+      Runtime: nodejs18.x
       Code:
         S3Bucket: !Ref LambdaDeploymentBucket
         S3Key: !Sub backend/${EnvType}/products.zip
@@ -117,7 +117,7 @@ Resources:
     Properties:
       FunctionName: !Sub orders-${EnvType}
       Handler: handler.handler
-      Runtime: nodejs14.x
+      Runtime: nodejs18.x
       Code:
         S3Bucket: !Ref LambdaDeploymentBucket
         S3Key: !Sub backend/${EnvType}/orders.zip

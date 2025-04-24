@@ -1,6 +1,9 @@
 {
     "name": "product-service",
     "version": "1.0.0",
+    "engines": {
+        "node": ">=18"
+    },
     "dependencies": {
         "@aws-sdk/client-opensearch": "^3.787.0",
         "aws-sdk": "^2.1048.0"
