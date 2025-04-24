@@ -1,5 +1,5 @@
+---
 version: 0.2
-
 phases:
   install:
     runtime-versions:
@@ -8,10 +8,9 @@ phases:
       - echo "Installing global dependencies..."
       - npm install -g aws-sdk
       - echo "Installing Lambda function dependencies..."
-      - if [ -d "src/auth" ]; then (cd src/auth && npm install); else echo "Warning: src/auth not found"; fi
-      - if [ -d "src/orders" ]; then (cd src/orders && npm install); else echo "Warning: src/orders not found"; fi
-      - if [ -d "src/products" ]; then (cd src/products && npm install); else echo "Warning: src/products not found"; fi
-
+      - 'if [ -d "src/auth" ]; then (cd src/auth && npm install); else echo "Warning': src/auth not found"; fi
+      - 'if [ -d "src/orders" ]; then (cd src/orders && npm install); else echo "Warning': src/orders not found"; fi
+      - 'if [ -d "src/products" ]; then (cd src/products && npm install); else echo "Warning': src/products not found"; fi
   pre_build:
     commands:
       - echo "Creating distribution directory..."
@@ -19,35 +18,33 @@ phases:
       - echo "Current directory structure:"
       - ls -la
       - ls -la src/
-
   build:
     commands:
       - echo "Packaging Lambda functions..."
-      - if [ ! -d "src/auth" ]; then echo "Error: src/auth missing" && exit 1; fi
-      - if [ ! -d "src/orders" ]; then echo "Error: src/orders missing" && exit 1; fi
-      - if [ ! -d "src/products" ]; then echo "Error: src/products missing" && exit 1; fi
-      
-      - (cd src/auth && zip -r ../../dist/$ENV/auth.zip .) || (echo "Failed to package auth" && exit 1)
-      - (cd src/orders && zip -r ../../dist/$ENV/orders.zip .) || (echo "Failed to package orders" && exit 1)
-      - (cd src/products && zip -r ../../dist/$ENV/products.zip .) || (echo "Failed to package products" && exit 1)
-
-  post_build:
-    commands:
-      - echo "Uploading Lambda packages to S3..."
-      - aws s3 sync dist/$ENV/ s3://$LAMBDA_DEPLOYMENT_BUCKET/backend/$ENV/
-      
-      - echo "Packaging CloudFormation template..."
-      - if [ ! -f "templates/backend.yml" ]; then
-          echo "Error: templates/backend.yml not found";
-          ls -la templates/;
-          exit 1;
-        fi
-      - aws cloudformation package \
-          --template-file templates/backend.yml \
-          --s3-bucket $LAMBDA_DEPLOYMENT_BUCKET \
-          --output-template-file packaged-template.yml
-      - aws s3 cp packaged-template.yml s3://$LAMBDA_DEPLOYMENT_BUCKET/templates/
-
+      - 'if [ ! -d "src/auth" ]; then echo "Error': src/auth missing" && exit 1; fi
+      - 'if [ ! -d "src/orders" ]; then echo "Error': src/orders missing" && exit 1; fi
+      - 'if [ ! -d "src/products" ]; then echo "Error': src/products missing" && exit 1; fi
+      - (cd src/auth && zip -r ../../dist/$ENV/auth.zip .) || (echo "Failed to
+        package auth" && exit 1)
+      - (cd src/orders && zip -r ../../dist/$ENV/orders.zip .) || (echo "Failed
+        to package orders" && exit 1)
+      - (cd src/products && zip -r ../../dist/$ENV/products.zip .) || (echo
+        "Failed to package products" && exit 1)
+  post_build: null
+  commands:
+    - echo "Uploading Lambda packages to S3..."
+    - aws s3 sync dist/$ENV/ s3://$LAMBDA_DEPLOYMENT_BUCKET/backend/$ENV/
+    - echo "Packaging CloudFormation template..."
+    - |
+      if [ ! -f "templates/backend.yml" ]; then
+        echo "Error: templates/backend.yml not found"
+        ls -la templates/
+        exit 1
+      fi
+    - aws cloudformation package \ --template-file templates/backend.yml \
+      --s3-bucket $LAMBDA_DEPLOYMENT_BUCKET \ --output-template-file
+      packaged-template.yml
+    - aws s3 cp packaged-template.yml s3://$LAMBDA_DEPLOYMENT_BUCKET/templates/
 artifacts:
   files:
     - packaged-template.yml
