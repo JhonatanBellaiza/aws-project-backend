@@ -5,12 +5,8 @@ Parameters:
   EnvType:
     Type: String
     Description: Environment type (dev, staging, prod)
-    AllowedValues: 
-      - dev
-      - staging
-      - prod
+    AllowedValues: [dev, staging, prod]
     Default: dev
-    ConstraintDescription: Must be one of: dev, staging, prod
   LambdaDeploymentBucket:
     Type: String
     Description: S3 bucket for Lambda deployment packages
