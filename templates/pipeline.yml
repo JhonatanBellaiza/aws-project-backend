@@ -73,6 +73,35 @@ Resources:
                   - iam:*
                 Resource: '*'
 
+  CloudFormationExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub CloudFormationExecutionRole-${EnvType}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cloudformation.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: CloudFormationExecutionPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                  - lambda:*
+                  - iam:PassRole
+                  - cloudwatch:*
+                  - logs:*
+                  - apigateway:*
+                  - cloudformation:*
+                Resource: "*"
+
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -145,6 +174,7 @@ Resources:
               Configuration:
                 ActionMode: CREATE_UPDATE
                 Capabilities: CAPABILITY_IAM
+                RoleArn: !GetAtt CloudFormationExecutionRole.Arn
                 StackName: !Sub ecommerce-${EnvType}
                 TemplatePath: BuildOutput::templates/backend.yml
                 ParameterOverrides: |
