@@ -175,7 +175,7 @@ Resources:
                 Version: 1
               Configuration:
                 ActionMode: CREATE_UPDATE
-                Capabilities: [CAPABILITY_NAMED_IAM, CAPABILITY_IAM, CAPABILITY_AUTO_EXPAND]
+                Capabilities: [CAPABILITY_AUTO_EXPAND, CAPABILITY_NAMED_IAM, CAPABILITY_IAM]
                 RoleArn: !GetAtt CloudFormationExecutionRole.Arn
                 StackName: !Sub ecommerce-${EnvType}
                 TemplatePath: BuildOutput::output_templates/backend-packaged.yml
