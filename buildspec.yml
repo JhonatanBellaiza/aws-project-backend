@@ -42,7 +42,7 @@ phases:
       - |
         if [ ! -f "templates/backend.yml" ]; then
           echo "Error: templates/backend.yml not found"
-          ls -la templates/
+          ls -la templates/ 
           exit 1
         fi
       - |
@@ -54,7 +54,7 @@ phases:
 
 artifacts:
   files:
-    - packaged-template.yml
+    - output_templates/backend-packaged.yml
     - templates/backend.yml
     - dist/$ENV/*
   base-directory: .
