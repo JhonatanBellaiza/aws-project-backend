@@ -9,7 +9,7 @@ exports.handler = async (event) => {
   try {
     // Verify required environment variables exist
     if (!process.env.PRODUCTS_TABLE) {
-      throw new Error('PRODUCTS_TABLE environment  variable is not set');
+      throw new Error('PRODUCTS_TABLE environment   variable is not set');
     }
 
     if (event.httpMethod === 'GET') {
