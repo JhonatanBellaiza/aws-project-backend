@@ -4,8 +4,6 @@ Description: E-commerce backend infrastructure
 Parameters:
   EnvType:
     Type: String
-    Description: Environment type (dev, staging, prod)
-    AllowedValues: [dev, staging, prod]
     Default: dev
   LambdaDeploymentBucket:
     Type: String
