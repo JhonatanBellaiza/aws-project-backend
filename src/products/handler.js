@@ -20,7 +20,7 @@ exports.handler = async (event) => {
           return successResponse(results);
         } catch (searchError) {
           console.error('Search failed:', searchError);
-          return errorResponse(new Error('Search service is currently unavailable. Please try again later.'), 503);
+          return errorResponse(new Error('Search  service is currently unavailable. Please try again later.'), 503);
         }
       } 
       else if (event.queryStringParameters?.category) {
