@@ -36,7 +36,7 @@ module.exports = {
           try {
             const body = JSON.parse(data);
             if (res.statusCode !== 200) {
-              console.error('OpenSearch error response:', body);
+              console.error('OpenSearch  error response:', body);
               return reject(new Error(body.message || 'OpenSearch error'));
             }
             resolve(body.hits?.hits.map(hit => hit._source) || []);
